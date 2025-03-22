@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse de Cannibalisation SEO</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header class="bg-primary text-white py-3">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-bar-chart-line me-2 fs-3"></i>
+                <h1 class="mb-0">Rapport de Cannibalisation par l'agence SEO Slashr</h1>
+            </div>
+        </div>
+    </header>
+
+    <main class="container my-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-search me-2"></i>
+                    <h2 class="h5 mb-0">Analyse de Cannibalisation SEO</h2>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <p>
+                        <i class="bi bi-info-circle text-primary me-2"></i>
+                        Cet outil vous permet d'analyser la cannibalisation SEO entre vos pages web en fonction des mots-clés. 
+                        Vous pouvez soit télécharger vos fichiers, soit utiliser les données de Google Search Console.
+                    </p>
+                </div>
+
+                <div class="container mt-4">
+                    <h1 class="text-center mb-4">Analyse de Cannibalisation SEO</h1>
+                    
+                    <!-- Messages d'état -->
+                    <div id="loading" class="alert alert-info d-none" role="alert">
+                        Analyse en cours...
+                    </div>
+                    <div id="error" class="alert alert-danger d-none" role="alert">
+                    </div>
+                    
+                    <ul class="nav nav-tabs" id="dataTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="csv-tab" data-bs-toggle="tab" data-bs-target="#csv-panel" type="button" role="tab" aria-controls="csv-panel" aria-selected="true">
+                                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Fichiers CSV/Excel
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="gsc-tab" data-bs-toggle="tab" data-bs-target="#gsc-panel" type="button" role="tab" aria-controls="gsc-panel" aria-selected="false">
+                                <i class="bi bi-google me-1"></i> Google Search Console
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3" id="dataTabsContent">
+                        <!-- Onglet CSV/Excel -->
+                        <div class="tab-pane fade show active" id="csv-panel" role="tabpanel" aria-labelledby="csv-tab">
+                            <form id="csvForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="csvFile" class="form-label">Fichier CSV des mots-clés et URLs</label>
+                                    <input type="file" class="form-control" id="csvFile" name="file" accept=".csv,.xlsx,.xls">
+                                    <div class="form-text">Format attendu: Mot-clé, URL, Position, Clics (optionnel)</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="contentFile" class="form-label">Fichier CSV du contenu des URLs (optionnel)</label>
+                                    <input type="file" class="form-control" id="contentFile" name="content_file" accept=".csv,.xlsx,.xls">
+                                    <div class="form-text">Format attendu: URL, Contenu, Contenu (optionnel), Contenu (optionnel)</div>
+                                    <div class="alert alert-info mt-2">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Ce fichier est utilisé pour fournir le contenu des URLs au lieu de le scraper. 
+                                        Si fourni, l'option "Analyser le contenu des pages" sera activée automatiquement et 
+                                        le contenu sera utilisé pour les embeddings.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="csvSimilarityThreshold" class="form-label">Seuil de similarité</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="range" class="form-range flex-grow-1 me-2" id="csvSimilarityThreshold" name="similarity_threshold" min="0.5" max="1.0" step="0.1" value="0.8">
+                                        <span id="csvThresholdValue" class="badge bg-primary">0.8</span>
+                                    </div>
+                                    <div class="form-text">Plus la valeur est élevée, plus les URLs doivent être similaires pour être considérées comme cannibalisées.</div>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="csvScrapePages" name="scrape_pages">
+                                    <label class="form-check-label" for="csvScrapePages">Analyser le contenu des pages</label>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="csvPrimaryKeywordOnly" name="primary_keyword_only">
+                                    <label class="form-check-label" for="csvPrimaryKeywordOnly">Restreindre aux URLs dont le mot-clé principal est le même</label>
+                                    <div class="form-text">Si activé, l'analyse ne considérera que les URLs pour lesquelles le mot-clé qui génère le plus de trafic est identique.</div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="csvMinClicks" class="form-label">Nombre minimum de clics</label>
+                                        <input type="number" class="form-control" id="csvMinClicks" name="min_clicks" min="0" value="0">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="csvMinImpressions" class="form-label">Nombre minimum d'impressions</label>
+                                        <input type="number" class="form-control" id="csvMinImpressions" name="min_impressions" min="0" value="0">
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" id="csvAnalyzeBtn">
+                                    <i class="bi bi-play-fill"></i> Lancer l'analyse
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Onglet Google Search Console -->
+                        <div class="tab-pane fade" id="gsc-panel" role="tabpanel" aria-labelledby="gsc-tab">
+                            <div id="gscAuth">
+                                <p>Connectez-vous à Google Search Console pour accéder à vos données.</p>
+                                <button id="gscAuthBtn" class="btn btn-primary">
+                                    <i class="bi bi-google me-1"></i> Se connecter à Google Search Console
+                                </button>
+                            </div>
+
+                            <form id="gscForm" class="d-none">
+                                <div class="mb-3">
+                                    <label for="siteUrl" class="form-label">Site URL</label>
+                                    <div class="site-url-container">
+                                        <input type="text" class="form-control mb-2" id="siteUrlSearch" placeholder="Rechercher un site...">
+                                        <select class="form-select" id="siteUrl" name="site_url" required>
+                                            <option value="" selected disabled>Sélectionnez un site</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="startDate" class="form-label">Date de début</label>
+                                        <input type="date" class="form-control" id="startDate" name="start_date" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="endDate" class="form-label">Date de fin</label>
+                                        <input type="date" class="form-control" id="endDate" name="end_date" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="gscSimilarityThreshold" class="form-label">Seuil de similarité</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="range" class="form-range flex-grow-1 me-2" id="gscSimilarityThreshold" name="similarity_threshold" min="0.5" max="1.0" step="0.1" value="0.8">
+                                        <span id="gscThresholdValue" class="badge bg-primary">0.8</span>
+                                    </div>
+                                    <div class="form-text">Plus la valeur est élevée, plus les URLs doivent être similaires pour être considérées comme cannibalisées.</div>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="gscScrapePages" name="scrape_pages">
+                                    <label class="form-check-label" for="gscScrapePages">Analyser le contenu des pages</label>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="gscPrimaryKeywordOnly" name="primary_keyword_only">
+                                    <label class="form-check-label" for="gscPrimaryKeywordOnly">Restreindre aux URLs dont le mot-clé principal est le même</label>
+                                    <div class="form-text">Si activé, l'analyse ne considérera que les URLs pour lesquelles le mot-clé qui génère le plus de trafic est identique.</div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="gscMinClicks" class="form-label">Nombre minimum de clics</label>
+                                        <input type="number" class="form-control" id="gscMinClicks" name="min_clicks" min="0" value="0">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="gscMinImpressions" class="form-label">Nombre minimum d'impressions</label>
+                                        <input type="number" class="form-control" id="gscMinImpressions" name="min_impressions" min="0" value="0">
+                                    </div>
+                                </div>
+
+                                <div class="card mb-3">
+                                    <div class="card-header bg-secondary text-white">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-gear me-2"></i>
+                                            <h3 class="h6 mb-0">Paramètres avancés</h3>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="gscMaxRows" class="form-label">Nombre maximum de mots-clés à récupérer</label>
+                                            <input type="number" class="form-control" id="gscMaxRows" name="max_rows" min="1000" max="1000000" value="100000">
+                                            <div class="form-text">Plus cette valeur est élevée, plus l'analyse sera complète mais plus le temps d'exécution sera long.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3 form-check">
+                                            <input type="checkbox" class="form-check-input" id="gscUseDateChunks" name="use_date_chunks" checked>
+                                            <label class="form-check-label" for="gscUseDateChunks">Segmenter par périodes</label>
+                                            <div class="form-text">Divise la période d'analyse en segments plus courts pour contourner les limites de l'API Google Search Console.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="gscChunkSize" class="form-label">Taille des segments (jours)</label>
+                                            <input type="number" class="form-control" id="gscChunkSize" name="chunk_size" min="1" max="30" value="7">
+                                            <div class="form-text">Nombre de jours par segment. Une valeur plus petite permet de récupérer plus de données mais augmente le temps d'exécution.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" id="gscAnalyzeBtn">
+                                    <i class="bi bi-play-fill"></i> Lancer l'analyse
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Résultats de l'analyse -->
+            <div id="analysisResults" class="d-none">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-list-ul me-2"></i>
+                            <h2 class="h5 mb-0">Filtres et tri</h2>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="keywordFilter" class="form-label">Mot-clé contient:</label>
+                                <input type="text" class="form-control" id="keywordFilter" placeholder="Rechercher un mot-clé...">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="keywordExcludeFilter" class="form-label">Exclure mot-clé:</label>
+                                <input type="text" class="form-control" id="keywordExcludeFilter" placeholder="Mots-clés à exclure (séparés par des virgules)">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="useRegex" class="form-check-label">
+                                    <input type="checkbox" class="form-check-input me-2" id="useRegex">
+                                    Utiliser des expressions régulières
+                                </label>
+                                <div class="form-text">Active les regex pour les filtres d'inclusion et d'exclusion</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="showExactSimilarity" class="form-check-label">
+                                    <input type="checkbox" class="form-check-input me-2" id="showExactSimilarity">
+                                    Afficher les scores exacts de similarité
+                                </label>
+                                <div class="form-text">Affiche les valeurs brutes des embeddings au lieu des pourcentages arrondis</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="similarityMinFilter" class="form-label">Similarité minimum:</label>
+                                <div class="d-flex align-items-center">
+                                    <input type="range" class="form-range flex-grow-1 me-2" id="similarityMinFilter" min="0.5" max="1.0" step="0.1" value="0.8">
+                                    <span id="similarityMinValue" class="badge bg-primary">0.8</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="minUrlsFilter" class="form-label">Nombre minimum de URLs:</label>
+                                <input type="number" class="form-control" id="minUrlsFilter" min="2" value="2">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="minClicksFilter" class="form-label">Nombre minimum de clics:</label>
+                                <input type="number" class="form-control" id="minClicksFilter" min="0" value="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="minImpressionsFilter" class="form-label">Nombre minimum d'impressions:</label>
+                                <input type="number" class="form-control" id="minImpressionsFilter" min="0" value="0">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="sortBy" class="form-label">Trier par:</label>
+                                <select class="form-select" id="sortBy">
+                                    <option value="similarity_desc">Similarité (décroissante)</option>
+                                    <option value="similarity_asc">Similarité (croissante)</option>
+                                    <option value="urls_desc">Nombre d'URLs (décroissant)</option>
+                                    <option value="urls_asc">Nombre d'URLs (croissant)</option>
+                                    <option value="clicks_desc">Clics (décroissants)</option>
+                                    <option value="clicks_asc">Clics (croissants)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button id="applyFiltersBtn" class="btn btn-primary me-2">
+                                    <i class="bi bi-funnel-fill"></i> Appliquer les filtres
+                                </button>
+                                <button id="resetFiltersBtn" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                <h2 class="h5 mb-0">Rapport de Similarité des URLs par Mot-clé</h2>
+                            </div>
+                            <div>
+                                <span id="resultsCount" class="badge bg-light text-dark me-2">0 mots-clés</span>
+                                <div class="export-section text-end mb-3">
+                                    <button id="exportReportBtn" class="btn btn-outline-primary me-2" disabled>
+                                        <i class="bi bi-file-earmark-arrow-down me-1"></i> Exporter JSON
+                                    </button>
+                                    <button id="exportHtmlBtn" class="btn btn-outline-success" disabled>
+                                        <i class="bi bi-file-earmark-code me-1"></i> Exporter HTML
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="reportSummary" class="alert alert-info mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill me-2 fs-4"></i>
+                                <div>
+                                    <p class="mb-1">Nombre total de mots-clés analysés: <span id="totalKeywords">0</span></p>
+                                    <p class="mb-1">Seuil de similarité utilisé: <span id="thresholdUsed">0.8</span></p>
+                                    <p class="mb-0">Rapport généré le: <span id="reportDate">-</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="keywordGroups"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Indicateur de chargement -->
+            <div id="loadingIndicator" class="d-none">
+                <div class="d-flex justify-content-center my-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <span class="ms-2">Analyse en cours...</span>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-light py-3 mt-5">
+            <div class="container text-center">
+                <p class="mb-0"> 2025 Analyse de Cannibalisation SEO</p>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    </body>
+</html>

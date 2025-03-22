@@ -1,0 +1,77 @@
+# Environnement Python
+venv/
+env/
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Fichiers de logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dossiers de cache
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
+
+# Fichiers d'environnement local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dépendances Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Fichiers de build
+/build
+/dist
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers de données
+*.csv
+*.xlsx
+*.xls
+*.json
+!package.json
+!package-lock.json
+
+# Fichiers de tokens et d'authentification
+token.json
+credentials.json
+client_secret.json
