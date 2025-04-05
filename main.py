@@ -22,8 +22,10 @@ load_dotenv()
 app = FastAPI(
     title="Analyse de Cannibalisation SEO",
     description="API pour analyser la cannibalisation SEO entre les pages web",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/analyse-cannibalisation"
 )
+
 
 # Configurer CORS
 app.add_middleware(
